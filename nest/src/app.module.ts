@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Product } from './product/entities/product.entity.js'; 
+import { AuthModule } from './auth/auth.module.js';
+import { ProductModule } from './product/product.module.js';
 
 @Module({
   imports: [
@@ -22,6 +24,10 @@ import { Product } from './product/entities/product.entity.js';
         synchronize: true, 
       }),
     }),
+    
+  
+    AuthModule,
+    ProductModule,
   ],
 })
 export class AppModule {}

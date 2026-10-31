@@ -6,7 +6,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service.js';
-import { AuthDto } from './dto/auth.dto.js';
+import { LoginDto,RegisterDto} from './dto/auth.dto.js';
 
 @Injectable()
 export class AuthService {
@@ -15,7 +15,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async register(dto: AuthDto) {
+  async register(dto: RegisterDto) {
     const exists = await this.usersService.findByEmail(dto.email);
     if (exists) throw new ConflictException('Email đã tồn tại');
 
@@ -24,7 +24,7 @@ export class AuthService {
     return { id: user.id, email: user.email };
   }
 
-  async login(dto: AuthDto) {
+  async login(dto: LoginDto) {
     const user = await this.usersService.findByEmail(dto.email);
     if (!user) throw new UnauthorizedException('Sai email hoặc mật khẩu');
 

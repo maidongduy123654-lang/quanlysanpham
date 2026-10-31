@@ -7,15 +7,16 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Project Dependencies & Builds (Added trailing slashes)
+node_modules/
+dist/
+dist-ssr/
 *.local
 
-# Editor directories and files
+# Editor directories and files (Added trailing slash to .idea)
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
