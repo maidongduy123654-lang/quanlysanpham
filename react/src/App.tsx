@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation, Navigate } from 'react-router';
 
 interface Product {
@@ -7,6 +7,7 @@ interface Product {
   description?: string;
   price: number;
   stock: number;
+  category: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -16,6 +17,13 @@ interface ProductForm {
   description: string;
   price: number;
   stock: number;
+  category: string;
+}
+
+interface Stats {
+  totalProducts: number;
+  lowStockCount: number;
+  totalValue: number;
 }
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -165,22 +173,27 @@ export function ProductsManager(): React.JSX.Element {
   const navigate = useNavigate();
 
   const [products, setProducts] = useState<Product[]>([]);
-  const [form, setForm] = useState<ProductForm>({ name: '', description: '', price: 0, stock: 0 });
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [form, setForm] = useState<ProductForm>({ name: '', description: '', price: 0, stock: 0, category: 'Khác' });
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
+  // Filter states
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [lowStock, setLowStock] = useState(false);
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const itemsPerPage = 5;
 
-  useEffect(() => {
-    void fetchProducts();
-  }, []);
-
-  useEffect(() => {
-    if (location.pathname !== '/products/add' && editingId !== null) {
-      setEditingId(null);
-      setForm({ name: '', description: '', price: 0, stock: 0 });
-    }
-  }, [location.pathname]);
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem('access_token');
@@ -190,20 +203,52 @@ export function ProductsManager(): React.JSX.Element {
     };
   };
 
-  const fetchProducts = async (): Promise<void> => {
+  const fetchProducts = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/products`, { headers: getAuthHeaders() });
+      const params = new URLSearchParams({
+        search, category, minPrice, maxPrice,
+        lowStock: lowStock.toString(),
+        sortBy, sortOrder,
+        page: currentPage.toString(), limit: itemsPerPage.toString(),
+      });
+      const res = await fetch(`${API_URL}/products?${params.toString()}`, { headers: getAuthHeaders() });
       if (res.status === 401) {
         localStorage.removeItem('access_token');
         window.location.href = '/login';
         return;
       }
-      const data = (await res.json()) as Product[];
-      setProducts(data);
+      const data = await res.json();
+      // Backend mới trả về { data, total, page, totalPages }
+      if (data.data) {
+        setProducts(data.data);
+      } else {
+        // Fallback nếu backend cũ trả về mảng
+        setProducts(data);
+      }
     } catch (error) {
       console.error('Error fetching inventory:', error);
     }
+  }, [search, category, minPrice, maxPrice, lowStock, sortBy, sortOrder, currentPage]);
+
+  const fetchStats = async () => {
+    try {
+      const res = await fetch(`${API_URL}/products/stats`, { headers: getAuthHeaders() });
+      if (res.ok) setStats(await res.json());
+    } catch (e) { console.error(e); }
   };
+
+  useEffect(() => {
+    const timer = setTimeout(() => { void fetchProducts(); void fetchStats(); }, 300);
+    return () => clearTimeout(timer);
+  }, [fetchProducts]);
+
+  useEffect(() => {
+    if (location.pathname !== '/products/add' && editingId !== null) {
+      setEditingId(null);
+      setForm({ name: '', description: '', price: 0, stock: 0, category: 'Khác' });
+    }
+  }, [location.pathname]);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     const isEditing = editingId !== null;
@@ -218,16 +263,17 @@ export function ProductsManager(): React.JSX.Element {
       });
 
       if (res.ok) {
-        setForm({ name: '', description: '', price: 0, stock: 0 });
+        setForm({ name: '', description: '', price: 0, stock: 0, category: 'Khác' });
         setEditingId(null);
         void fetchProducts(); 
-        alert(isEditing ? 'Cập nhật thành công!' : 'Thêm thành công!');
+        void fetchStats();
+        showToast(isEditing ? 'Cập nhật thành công!' : 'Thêm thành công!');
         navigate('/products');
       } else {
-        alert('Lỗi xác thực dữ liệu theo ràng buộc của máy chủ.');
+        showToast('Lỗi xác thực dữ liệu theo ràng buộc của máy chủ.', 'error');
       }
     } catch {
-      alert('Lỗi truyền tải mạng.');
+      showToast('Lỗi truyền tải mạng.', 'error');
     }
   };
 
@@ -236,16 +282,49 @@ export function ProductsManager(): React.JSX.Element {
       try {
         const res = await fetch(`${API_URL}/products/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
         if (res.ok) {
-          const totalItemsAfterDelete = products.length - 1;
-          const maxRemainingPages = Math.ceil(totalItemsAfterDelete / itemsPerPage) || 1;
-          if (currentPage > maxRemainingPages) {
-            setCurrentPage(maxRemainingPages);
-          }
+          showToast('Đã xóa sản phẩm');
           void fetchProducts();
+          void fetchStats();
         }
       } catch (error) {
         console.error('Error deleting:', error);
       }
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return showToast('Chưa chọn sản phẩm nào', 'error');
+    if (!window.confirm(`Xóa ${selectedIds.length} sản phẩm đã chọn?`)) return;
+    try {
+      const res = await fetch(`${API_URL}/products/bulk-delete`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ ids: selectedIds }),
+      });
+      if (res.ok) {
+        showToast(`Đã xóa ${selectedIds.length} sản phẩm`);
+        setSelectedIds([]);
+        void fetchProducts();
+        void fetchStats();
+      }
+    } catch (e) {
+      showToast('Lỗi khi xóa', 'error');
+    }
+  };
+
+  const handleUpdateStock = async (id: number, amount: number) => {
+    try {
+      const res = await fetch(`${API_URL}/products/${id}/stock`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ amount }),
+      });
+      if (!res.ok) throw new Error();
+      showToast('Cập nhật kho thành công!');
+      void fetchProducts();
+      void fetchStats();
+    } catch (e) {
+      showToast('Lỗi cập nhật kho', 'error');
     }
   };
 
@@ -256,17 +335,25 @@ export function ProductsManager(): React.JSX.Element {
       description: product.description || '',
       price: Number(product.price),
       stock: product.stock,
+      category: product.category || 'Khác',
     });
     navigate('/products/add');
   };
 
-  // Pagination Window Index Computations
+  const handleSort = (key: string) => {
+    if (sortBy === key) setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    else { setSortBy(key); setSortOrder('asc'); }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === products.length && products.length > 0) setSelectedIds([]);
+    else setSelectedIds(products.map(p => p.id));
+  };
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItemsSlice = products.slice(indexOfFirstItem, indexOfLastItem);
   const totalPagesCount = Math.ceil(products.length / itemsPerPage) || 1;
 
-  // Determine active route state context
   const isAddRoute = location.pathname === '/products/add';
   const isEditRoute = location.pathname === '/products/edit';
   const isRemoveRoute = location.pathname === '/products/remove';
@@ -284,6 +371,15 @@ export function ProductsManager(): React.JSX.Element {
               <input type="text" placeholder="Tên sản phẩm" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }} required />
             </div>
             <div>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#334155', marginBottom: '6px' }}>Danh mục</label>
+              <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <option value="Khác">Khác</option>
+                <option value="Điện thoại">Điện thoại</option>
+                <option value="Laptop">Laptop</option>
+                <option value="Phụ kiện">Phụ kiện</option>
+              </select>
+            </div>
+            <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#334155', marginBottom: '6px' }}>Mô tả</label>
               <textarea placeholder="Mô tả sản phẩm" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', minHeight: '100px', resize: 'vertical' }} />
             </div>
@@ -297,115 +393,4 @@ export function ProductsManager(): React.JSX.Element {
             </div>
             
             <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-              <button type="submit" style={{ flex: 1, padding: '12px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}>Lưu</button>
-              {editingId && (
-                <button type="button" onClick={() => { setEditingId(null); setForm({ name: '', description: '', price: 0, stock: 0 }); navigate('/products'); }} style={{ padding: '12px 20px', background: '#94a3b8', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}>Hủy</button>
-              )}
-            </div>
-          </form>
-        </div>
-      );
-    }
-
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <h3 style={{ margin: 0, fontSize: '20px', fontWeight: '700', color: '#0f172a' }}>
-          {isEditRoute ? '✏️ Chọn sản phẩm để sửa' : isRemoveRoute ? '❌ Chọn sản phẩm để xóa' : '📋 Danh sách tồn kho sản phẩm'}
-        </h3>
-        <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                <th style={{ padding: '14px 18px', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>ID</th>
-                <th style={{ padding: '14px 18px', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>Tên</th>
-                <th style={{ padding: '14px 18px', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>Mô tả</th>
-                <th style={{ padding: '14px 18px', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>Giá</th>
-                <th style={{ padding: '14px 18px', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>Tồn kho</th>
-                {(!isAddRoute) && <th style={{ padding: '14px 18px', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>Thao tác</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {currentItemsSlice.length === 0 ? (
-                <tr><td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8', fontSize: '14px' }}>Không tìm thấy mục nào.</td></tr>
-              ) : (
-                currentItemsSlice.map((p: Product) => (
-                  <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '14px 18px', fontSize: '14px', color: '#64748b' }}>#{p.id}</td>
-                    <td style={{ padding: '14px 18px', fontSize: '14px', fontWeight: '600', color: '#0f172a' }}>{p.name}</td>
-                    <td style={{ padding: '14px 18px', fontSize: '14px', color: '#475569' }}>{p.description || '—'}</td>
-                    <td style={{ padding: '14px 18px', fontSize: '14px', color: '#0f172a', fontWeight: '500' }}>{Number(p.price).toLocaleString()} VND</td>
-                    <td style={{ padding: '14px 18px', fontSize: '14px', color: '#475569' }}>{p.stock} đơn vị</td>
-                    {(!isAddRoute) && (
-                      <td style={{ padding: '14px 18px' }}>
-                        {isEditRoute && (
-                          <button onClick={() => handleEditClick(p)} style={{ background: '#f59e0b', color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}>Sửa</button>
-                        )}
-                        {isRemoveRoute && (
-                          <button onClick={() => void handleDelete(p.id)} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}>Xóa</button>
-                        )}
-                        {!isEditRoute && !isRemoveRoute && (
-                          <span style={{ fontSize: '13px', color: '#94a3b8' }}>Chỉ xem</span>
-                        )}
-                      </td>
-                    )}
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 18px', borderTop: '1px solid #e2e8f0', background: '#f8fafc' }}>
-            <span style={{ fontSize: '13px', color: '#64748b' }}>
-              Hiển thị {products.length === 0 ? 0 : indexOfFirstItem + 1} đến {Math.min(indexOfLastItem, products.length)} trong tổng số {products.length} mục
-            </span>
-            <div style={{ display: 'flex', gap: '6px' }}>
-              <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} style={{ padding: '6px 12px', border: '1px solid #e2e8f0', borderRadius: '6px', background: '#fff', color: '#334155', cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}>Trước</button>
-              {Array.from({ length: totalPagesCount }, (_, idx) => idx + 1).map(num => (
-                <button 
-                  key={num} 
-                  onClick={() => setCurrentPage(num)} 
-                  style={{ 
-                    padding: '6px 12px', 
-                    borderRadius: '6px', 
-                    background: currentPage === num ? '#2563eb' : '#fff', 
-                    color: currentPage === num ? '#fff' : '#334155', 
-                    border: '1px solid ' + (currentPage === num ? '#2563eb' : '#e2e8f0'), 
-                    cursor: 'pointer', 
-                    fontSize: '13px', 
-                    fontWeight: '600' 
-                  }}
-                >
-                  {num}
-                </button>
-              ))}
-              <button 
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPagesCount))} 
-                disabled={currentPage === totalPagesCount} 
-                style={{ padding: '6px 12px', border: '1px solid #e2e8f0', borderRadius: '6px', background: '#fff', color: '#334155', cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}
-              >
-                Sau
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  return <Layout>{renderContent()}</Layout>;
-}
-export default function App(): React.JSX.Element {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/products" element={<ProtectedRoute><ProductsManager /></ProtectedRoute>} />
-        <Route path="/products/add" element={<ProtectedRoute><ProductsManager /></ProtectedRoute>} />
-        <Route path="/products/edit" element={<ProtectedRoute><ProductsManager /></ProtectedRoute>} />
-        <Route path="/products/remove" element={<ProtectedRoute><ProductsManager /></ProtectedRoute>} />
-        <Route path="*" element={<Navigate to="/products" replace />} />
-      </Routes>
-    </BrowserRouter>
-  );
-}
+              <button type="submit" style={{ flex: 1, padding: '12px', background: '#2563eb', color: '#fff', border
