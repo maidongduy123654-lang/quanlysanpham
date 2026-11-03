@@ -35,7 +35,7 @@ interface InventoryLog {
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-// ==================== AUTH (giữ nguyên) ====================
+// ==================== AUTH ====================
 function ProtectedRoute({ children }: { children: React.ReactNode }): React.JSX.Element {
   const token = localStorage.getItem('access_token');
   if (!token) return <Navigate to="/login" replace />;
@@ -124,7 +124,7 @@ function Register(): React.JSX.Element {
   );
 }
 
-// ==================== LAYOUT (GIỮ NGUYÊN ICON CŨ) ====================
+// ==================== LAYOUT ====================
 function Layout({ children }: { children: React.ReactNode }): React.JSX.Element {
   const location = useLocation();
   const navigate = useNavigate();
@@ -157,8 +157,6 @@ function Layout({ children }: { children: React.ReactNode }): React.JSX.Element 
             <span style={{ padding: '0 12px', fontSize: '11px', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>📦 Quản lý sản phẩm</span>
             <Link to="/products" style={getLinkStyle('/products')}><span>📋</span> Danh sách sản phẩm</Link>
             <Link to="/products/add" style={getLinkStyle('/products/add')}><span>➕</span> Thêm sản phẩm</Link>
-            <Link to="/products/edit" style={getLinkStyle('/products/edit')}><span>✏️</span> Sửa sản phẩm</Link>
-            <Link to="/products/remove" style={getLinkStyle('/products/remove')}><span>❌</span> Xóa sản phẩm</Link>
           </nav>
         </div>
         <button
@@ -187,7 +185,7 @@ export function ProductsManager(): React.JSX.Element {
   const [form, setForm] = useState<ProductForm>({ name: '', description: '', price: 0, stock: 0, category: 'Khác' });
   const [editingId, setEditingId] = useState<number | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [activeRowId, setActiveRowId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
 
   const [search, setSearch] = useState('');
@@ -276,19 +274,8 @@ export function ProductsManager(): React.JSX.Element {
     if (!window.confirm('Xóa bản ghi này?')) return;
     try {
       const res = await fetch(`${API_URL}/products/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
-      if (res.ok) { showToast('Đã xóa'); void fetchProducts(); void fetchStats(); }
+      if (res.ok) { showToast('Đã xóa'); setActiveRowId(null); void fetchProducts(); void fetchStats(); }
     } catch (e) { console.error(e); }
-  };
-
-  const handleBulkDelete = async () => {
-    if (selectedIds.length === 0) return showToast('Chưa chọn sản phẩm', 'error');
-    if (!window.confirm(`Xóa ${selectedIds.length} sản phẩm?`)) return;
-    try {
-      const res = await fetch(`${API_URL}/products/bulk-delete`, {
-        method: 'POST', headers: getAuthHeaders(), body: JSON.stringify({ ids: selectedIds }),
-      });
-      if (res.ok) { showToast(`Đã xóa ${selectedIds.length} sản phẩm`); setSelectedIds([]); void fetchProducts(); void fetchStats(); }
-    } catch { showToast('Lỗi khi xóa', 'error'); }
   };
 
   const handleUpdateStock = async (id: number, amount: number) => {
@@ -322,16 +309,8 @@ export function ProductsManager(): React.JSX.Element {
     else { setSortBy(key); setSortOrder('asc'); }
   };
 
-  const toggleSelectAll = () => {
-    if (selectedIds.length === products.length && products.length > 0) setSelectedIds([]);
-    else setSelectedIds(products.map(p => p.id));
-  };
-
   const isAddRoute = location.pathname === '/products/add';
-  const isEditRoute = location.pathname === '/products/edit';
-  const isRemoveRoute = location.pathname === '/products/remove';
 
-  // Icon sắp xếp dùng ký tự Unicode
   const SortIcon = ({ column }: { column: string }) => {
     if (sortBy !== column) return <span style={{ opacity: 0.3, fontSize: '12px' }}>⇅</span>;
     return sortOrder === 'asc' ? <span style={{ fontSize: '12px' }}>▲</span> : <span style={{ fontSize: '12px' }}>▼</span>;
@@ -388,7 +367,6 @@ export function ProductsManager(): React.JSX.Element {
   // ===== LIST =====
   return (
     <Layout>
-      {/* TOAST */}
       {toast && (
         <div style={{
           position: 'fixed', top: '20px', right: '20px', padding: '12px 20px',
@@ -400,7 +378,6 @@ export function ProductsManager(): React.JSX.Element {
         </div>
       )}
 
-      {/* HISTORY MODAL */}
       {historyModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999 }} onClick={() => setHistoryModal(null)}>
           <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', width: '480px', maxHeight: '70vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
@@ -427,13 +404,11 @@ export function ProductsManager(): React.JSX.Element {
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        {/* HEADER */}
         <h3 style={{ margin: 0, fontSize: '20px', fontWeight: '700', color: '#0f172a' }}>
-          {isEditRoute ? '✏️ Chọn sản phẩm để sửa' : isRemoveRoute ? '❌ Chọn sản phẩm để xóa' : '📋 Danh sách tồn kho sản phẩm'}
+          📋 Danh sách tồn kho sản phẩm
         </h3>
 
-        {/* STATS */}
-        {stats && !isEditRoute && !isRemoveRoute && (
+        {stats && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
             <div style={{ background: '#fff', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '14px' }}>
               <div style={{ background: '#dbeafe', padding: '12px', borderRadius: '10px', fontSize: '22px' }}>📦</div>
@@ -450,7 +425,6 @@ export function ProductsManager(): React.JSX.Element {
           </div>
         )}
 
-        {/* FILTER */}
         <div style={{ background: '#fff', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
           <div style={{ position: 'relative', flex: '1 1 200px' }}>
             <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', fontSize: '14px' }}>🔍</span>
@@ -472,23 +446,12 @@ export function ProductsManager(): React.JSX.Element {
             <input type="checkbox" checked={lowStock} onChange={e => { setLowStock(e.target.checked); setCurrentPage(1); }} />
             ⚠️ Sắp hết
           </label>
-          {!isEditRoute && !isRemoveRoute && selectedIds.length > 0 && (
-            <button onClick={handleBulkDelete} style={{ padding: '10px 14px', background: '#dc2626', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              🗑️ Xóa ({selectedIds.length})
-            </button>
-          )}
         </div>
 
-        {/* TABLE */}
         <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
               <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                {!isEditRoute && !isRemoveRoute && (
-                  <th style={{ padding: '14px 18px', width: '40px' }}>
-                    <input type="checkbox" onChange={toggleSelectAll} checked={selectedIds.length === products.length && products.length > 0} />
-                  </th>
-                )}
                 <th style={{ padding: '14px 18px', fontSize: '13px', fontWeight: '600', color: '#64748b', cursor: 'pointer' }} onClick={() => handleSort('id')}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>ID <SortIcon column="id" /></div>
                 </th>
@@ -507,20 +470,21 @@ export function ProductsManager(): React.JSX.Element {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={7} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>⏳ Đang tải...</td></tr>
+                <tr><td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>⏳ Đang tải...</td></tr>
               ) : products.length === 0 ? (
-                <tr><td colSpan={7} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>Không tìm thấy mục nào.</td></tr>
+                <tr><td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>Không tìm thấy mục nào.</td></tr>
               ) : (
                 products.map((p) => (
-                  <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    {!isEditRoute && !isRemoveRoute && (
-                      <td style={{ padding: '14px 18px' }}>
-                        <input type="checkbox" checked={selectedIds.includes(p.id)} onChange={e => {
-                          if (e.target.checked) setSelectedIds([...selectedIds, p.id]);
-                          else setSelectedIds(selectedIds.filter(id => id !== p.id));
-                        }} />
-                      </td>
-                    )}
+                  <tr
+                    key={p.id}
+                    onClick={() => setActiveRowId(activeRowId === p.id ? null : p.id)}
+                    style={{
+                      borderBottom: '1px solid #f1f5f9',
+                      cursor: 'pointer',
+                      background: activeRowId === p.id ? '#eff6ff' : '#fff',
+                      transition: 'background 0.15s',
+                    }}
+                  >
                     <td style={{ padding: '14px 18px', fontSize: '14px', color: '#64748b' }}>#{p.id}</td>
                     <td style={{ padding: '14px 18px', fontSize: '14px', fontWeight: '600', color: '#0f172a' }}>{p.name}</td>
                     <td style={{ padding: '14px 18px', fontSize: '14px', color: '#475569' }}>{p.category || '—'}</td>
@@ -535,24 +499,17 @@ export function ProductsManager(): React.JSX.Element {
                       </span>
                     </td>
                     <td style={{ padding: '14px 18px' }}>
-                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                        {!isEditRoute && !isRemoveRoute && (
-                          <>
-                            <button onClick={() => handleUpdateStock(p.id, -1)} disabled={p.stock === 0} style={{ padding: '4px 10px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: p.stock === 0 ? 'not-allowed' : 'pointer', fontWeight: '600' }}>−</button>
-                            <button onClick={() => handleUpdateStock(p.id, 1)} style={{ padding: '4px 10px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>+</button>
-                            <button onClick={() => handleViewHistory(p.id)} title="Lịch sử kho" style={{ padding: '4px 8px', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '16px' }}>📜</button>
-                          </>
-                        )}
-                        {isEditRoute && (
-                          <button onClick={() => handleEditClick(p)} style={{ background: '#f59e0b', color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}>Sửa</button>
-                        )}
-                        {isRemoveRoute && (
-                          <button onClick={() => void handleDelete(p.id)} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}>Xóa</button>
-                        )}
-                        {!isEditRoute && !isRemoveRoute && (
-                          <span style={{ fontSize: '13px', color: '#94a3b8' }}>Chỉ xem</span>
-                        )}
-                      </div>
+                      {activeRowId === p.id ? (
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                          <button onClick={(e) => { e.stopPropagation(); handleUpdateStock(p.id, -1); }} disabled={p.stock === 0} style={{ padding: '4px 10px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: p.stock === 0 ? 'not-allowed' : 'pointer', fontWeight: '600' }}>−</button>
+                          <button onClick={(e) => { e.stopPropagation(); handleUpdateStock(p.id, 1); }} style={{ padding: '4px 10px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>+</button>
+                          <button onClick={(e) => { e.stopPropagation(); handleViewHistory(p.id); }} title="Lịch sử kho" style={{ padding: '4px 8px', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '16px' }}>📜</button>
+                          <button onClick={(e) => { e.stopPropagation(); handleEditClick(p); }} style={{ background: '#f59e0b', color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}>✏️ Sửa</button>
+                          <button onClick={(e) => { e.stopPropagation(); void handleDelete(p.id); }} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}>❌ Xóa</button>
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: '13px', color: '#94a3b8' }}>Nhấn để thao tác</span>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -583,8 +540,6 @@ export default function App(): React.JSX.Element {
         <Route path="/register" element={<Register />} />
         <Route path="/products" element={<ProtectedRoute><ProductsManager /></ProtectedRoute>} />
         <Route path="/products/add" element={<ProtectedRoute><ProductsManager /></ProtectedRoute>} />
-        <Route path="/products/edit" element={<ProtectedRoute><ProductsManager /></ProtectedRoute>} />
-        <Route path="/products/remove" element={<ProtectedRoute><ProductsManager /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/products" replace />} />
       </Routes>
     </BrowserRouter>
