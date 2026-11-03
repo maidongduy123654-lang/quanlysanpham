@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import * as fs from 'fs';           
+import * as path from 'path';      
 import { Product } from './product/entities/product.entity.js'; 
 import { AuthModule } from './auth/auth.module.js';
 import { ProductModule } from './product/product.module.js';
@@ -20,12 +22,14 @@ import { ProductModule } from './product/product.module.js';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
+        ssl: {                                             
+          ca: fs.readFileSync(path.join(process.cwd(), 'ca.pem')),
+          rejectUnauthorized: true,
+        },
         entities: [Product],
         synchronize: true, 
       }),
     }),
-    
-  
     AuthModule,
     ProductModule,
   ],
