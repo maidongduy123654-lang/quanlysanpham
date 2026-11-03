@@ -1,22 +1,21 @@
-import { IsString, IsNotEmpty, IsOptional, IsNumber, Min } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsString, IsNumber, IsOptional } from 'class-validator';
 
 export class CreateProductDto {
-  @IsString({ message: 'Tên sản phẩm phải là một chuỗi' })
-  @IsNotEmpty({ message: 'Tên sản phẩm không được để trống' })
+  @IsString()
   name: string;
 
   @IsString()
   @IsOptional()
   description?: string;
 
-  @IsNumber({}, { message: 'Giá phải là số' })
-  @Min(0, { message: 'Giá không được nhỏ hơn 0' })
-  @Type(() => Number)
+  @IsNumber()
   price: number;
 
-  @IsNumber({}, { message: 'Số lượng phải là số nguyên' })
-  @Min(0, { message: 'Số lượng không được nhỏ hơn 0' })
-  @Type(() => Number)
+  @IsNumber()
   stock: number;
+
+  // 📝 [CẦN DB] Bỏ comment SAU KHI có cột category
+  // @IsString()
+  // @IsOptional()
+  // category?: string;
 }
