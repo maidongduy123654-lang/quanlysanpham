@@ -27,7 +27,7 @@ import { ProductModule } from './product/product.module.js';
           rejectUnauthorized: true,
         },
         entities: [Product],
-        synchronize: true, 
+        synchronize: false, 
       }),
     }),
     AuthModule,
