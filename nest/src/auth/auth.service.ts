@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { UsersService } from '../users/users.service.js';
+import {  UsersService } from '../users/users.service.js';
 import { LoginDto,RegisterDto} from './dto/auth.dto.js';
 
 @Injectable()
@@ -13,6 +13,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+     
   ) {}
 
   async register(dto: RegisterDto) {

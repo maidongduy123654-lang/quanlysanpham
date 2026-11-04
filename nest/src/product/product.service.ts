@@ -52,7 +52,7 @@ export class ProductService {
       order,
       skip,
       take: Number(limit),
-      relations: ['variants'],
+      relations: { variants: true }, 
     });
 
     return {
@@ -66,7 +66,7 @@ export class ProductService {
   async findOne(id: number): Promise<Product> {
     const product = await this.productRepository.findOne({
       where: { id },
-      relations: ['variants', 'logs'],
+      relations: { variants: true, logs: true }, 
     });
     if (!product) throw new NotFoundException(`Không tìm thấy sản phẩm ID ${id}`);
     return product;
@@ -131,9 +131,12 @@ export class ProductService {
     });
   }
 
-  async addVariant(productId: number, variantData: any): Promise<ProductVariant> {
+   async addVariant(productId: number, variantData: any): Promise<ProductVariant> {
     const product = await this.findOne(productId);
-    const variant = this.variantRepository.create({ ...variantData, product });
-    return this.variantRepository.save(variant);
+    
+    const variant = new ProductVariant();
+Object.assign(variant, variantData);
+variant.product = product;
+return this.variantRepository.save(variant);
   }
 }
