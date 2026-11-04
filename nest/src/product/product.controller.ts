@@ -22,11 +22,7 @@ export class ProductController {
     return this.productService.getStats();
   }
 
-  // ✅ AN TOÀN
-  @Post('bulk-delete')
-  bulkDelete(@Body('ids') ids: number[]) {
-    return this.productService.bulkDelete(ids);
-  }
+  
 
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
@@ -49,15 +45,13 @@ export class ProductController {
     return this.productService.updateStock(id, amount);
   }
 
-  // 📝 [CẦN DB] Lịch sử kho — Bỏ comment SAU KHI tạo bảng inventory_logs
-  // @Get(':id/logs')
-  // getLogs(@Param('id', ParseIntPipe) id: number) {
-  //   return this.productService.getInventoryLogs(id);
-  // }
+  @Get(':id/logs')
+  getLogs(@Param('id', ParseIntPipe) id: number) {
+    return this.productService.getInventoryLogs(id);
+  }
 
-  // 📝 [CẦN DB] Biến thể — Bỏ comment SAU KHI tạo bảng product_variants
-  // @Post(':id/variants')
-  // addVariant(@Param('id', ParseIntPipe) id: number, @Body() variantData: any) {
-  //   return this.productService.addVariant(id, variantData);
-  // }
+  @Post(':id/variants')
+  addVariant(@Param('id', ParseIntPipe) id: number, @Body() variantData: any) {
+    return this.productService.addVariant(id, variantData);
+  }
 }

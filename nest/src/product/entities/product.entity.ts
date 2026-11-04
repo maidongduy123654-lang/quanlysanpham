@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { InventoryLog } from './inventory-log.entity.js';
+import { ProductVariant } from './product-variant.entity.js';
 @Entity('products')
 export class Product {
   @PrimaryGeneratedColumn()
@@ -17,18 +18,14 @@ export class Product {
   @Column('int', { default: 0 })
   stock: number;
 
-  // 📝 [CẦN DB] Bỏ comment dòng dưới SAU KHI bạn chạy SQL:
-  // ALTER TABLE products ADD COLUMN category VARCHAR(100) DEFAULT 'Khác';
-  // @Column({ type: 'varchar', length: 100, default: 'Khác' })
-  // category: string;
+  @Column({ type: 'varchar', length: 100, default: 'Khác' })
+  category: string;
 
-  // 📝 [CẦN DB] Bỏ comment SAU KHI tạo bảng inventory_logs
-  // @OneToMany(() => InventoryLog, (log) => log.product)
-  // logs: InventoryLog[];
+  @OneToMany(() => InventoryLog, (log) => log.product)
+  logs: InventoryLog[];
 
-  // 📝 [CẦN DB] Bỏ comment SAU KHI tạo bảng product_variants
-  // @OneToMany(() => ProductVariant, (variant) => variant.product)
-  // variants: ProductVariant[];
+  @OneToMany(() => ProductVariant, (variant) => variant.product)
+  variants: ProductVariant[];
 
   @CreateDateColumn()
   createdAt: Date;

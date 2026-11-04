@@ -14,8 +14,7 @@ export class CreateProductDto {
   @IsNumber()
   stock: number;
 
-  // 📝 [CẦN DB] Bỏ comment SAU KHI có cột category
-  // @IsString()
-  // @IsOptional()
-  // category?: string;
+  @IsString()
+  @IsOptional()
+  category?: string;
 }

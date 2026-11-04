@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation, Navigate } from 'react-router';
+import {
+  LayoutDashboard, Package, Plus, Pencil, Trash2, LogOut,
+  Search, AlertTriangle, DollarSign, Boxes, X, Check, Loader2,
+  ListFilter, History, ChevronLeft, ChevronRight,
+  ArrowUpDown, ArrowUp, ArrowDown, Minus
+} from 'lucide-react';
 
 interface Product {
   id: number;
@@ -46,9 +52,11 @@ function Login(): React.JSX.Element {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
@@ -59,11 +67,11 @@ function Login(): React.JSX.Element {
       if (res.ok && data.access_token) {
         localStorage.setItem('access_token', data.access_token);
         navigate('/products');
-      } else {
-        alert(`Đăng nhập thất bại: ${data.message || 'Thông tin đăng nhập không hợp lệ'}`);
-      }
+      } else alert(`Đăng nhập thất bại: ${data.message || 'Thông tin đăng nhập không hợp lệ'}`);
     } catch {
       alert('Không thể kết nối đến máy chủ.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -74,7 +82,9 @@ function Login(): React.JSX.Element {
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '14px' }} required />
           <input type="password" placeholder="Mật khẩu" value={password} onChange={e => setPassword(e.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '14px' }} required />
-          <button type="submit" style={{ padding: '12px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '14px', cursor: 'pointer' }}>Đăng nhập</button>
+          <button type="submit" disabled={loading} style={{ padding: '12px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            {loading ? <Loader2 size={18} /> : <Check size={18} />} {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
+          </button>
         </form>
         <p style={{ marginTop: '20px', fontSize: '14px', color: '#64748b' }}>Chưa có tài khoản? <Link to="/register" style={{ color: '#2563eb', textDecoration: 'none' }}>Đăng ký</Link></p>
       </div>
@@ -87,9 +97,11 @@ function Register(): React.JSX.Element {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const res = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
@@ -105,6 +117,8 @@ function Register(): React.JSX.Element {
       }
     } catch {
       alert('Đăng ký thất bại.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -116,7 +130,9 @@ function Register(): React.JSX.Element {
           <input type="text" placeholder="Họ và tên" value={name} onChange={e => setName(e.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '14px' }} required />
           <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '14px' }} required />
           <input type="password" placeholder="Mật khẩu" value={password} onChange={e => setPassword(e.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '14px' }} required />
-          <button type="submit" style={{ padding: '12px', background: '#16a34a', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '14px', cursor: 'pointer' }}>Đăng ký</button>
+          <button type="submit" disabled={loading} style={{ padding: '12px', background: '#16a34a', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            {loading ? <Loader2 size={18} /> : <Check size={18} />} {loading ? 'Đang đăng ký...' : 'Đăng ký'}
+          </button>
         </form>
         <p style={{ marginTop: '20px', fontSize: '14px', color: '#64748b' }}>Đã có tài khoản? <Link to="/login" style={{ color: '#2563eb', textDecoration: 'none' }}>Đăng nhập</Link></p>
       </div>
@@ -151,19 +167,21 @@ function Layout({ children }: { children: React.ReactNode }): React.JSX.Element 
       <aside style={{ width: '260px', background: '#ffffff', borderRight: '1px solid #e2e8f0', padding: '24px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'sticky', top: 0, height: '100vh', boxSizing: 'border-box' }}>
         <div>
           <div style={{ padding: '0 12px', marginBottom: '28px' }}>
-            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#0f172a', letterSpacing: '-0.025em' }}>Bảng điều khiển</h3>
+            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <LayoutDashboard size={20} /> Bảng điều khiển
+            </h3>
           </div>
           <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <span style={{ padding: '0 12px', fontSize: '11px', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>📦 Quản lý sản phẩm</span>
-            <Link to="/products" style={getLinkStyle('/products')}><span>📋</span> Danh sách sản phẩm</Link>
-            <Link to="/products/add" style={getLinkStyle('/products/add')}><span>➕</span> Thêm sản phẩm</Link>
+            <span style={{ padding: '0 12px', fontSize: '11px', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>Quản lý sản phẩm</span>
+            <Link to="/products" style={getLinkStyle('/products')}><Package size={18} /> Danh sách sản phẩm</Link>
+            <Link to="/products/add" style={getLinkStyle('/products/add')}><Plus size={18} /> Thêm sản phẩm</Link>
           </nav>
         </div>
         <button
           onClick={() => { localStorage.removeItem('access_token'); navigate('/login'); }}
           style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
         >
-          Đăng xuất
+          <LogOut size={18} /> Đăng xuất
         </button>
       </aside>
       <main style={{ flex: 1, padding: '40px', overflowY: 'auto' }}>
@@ -312,8 +330,8 @@ export function ProductsManager(): React.JSX.Element {
   const isAddRoute = location.pathname === '/products/add';
 
   const SortIcon = ({ column }: { column: string }) => {
-    if (sortBy !== column) return <span style={{ opacity: 0.3, fontSize: '12px' }}>⇅</span>;
-    return sortOrder === 'asc' ? <span style={{ fontSize: '12px' }}>▲</span> : <span style={{ fontSize: '12px' }}>▼</span>;
+    if (sortBy !== column) return <ArrowUpDown size={14} style={{ opacity: 0.3 }} />;
+    return sortOrder === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />;
   };
 
   // ===== FORM =====
@@ -321,8 +339,8 @@ export function ProductsManager(): React.JSX.Element {
     return (
       <Layout>
         <div style={{ background: '#fff', padding: '32px', borderRadius: '12px', border: '1px solid #e2e8f0', maxWidth: '560px' }}>
-          <h3 style={{ margin: '0 0 24px 0', fontSize: '20px', fontWeight: '700', color: '#0f172a' }}>
-            {editingId ? '✏️ Cập nhật sản phẩm' : '➕ Thêm sản phẩm mới'}
+          <h3 style={{ margin: '0 0 24px 0', fontSize: '20px', fontWeight: '700', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {editingId ? <><Pencil size={20} /> Cập nhật sản phẩm</> : <><Plus size={20} /> Thêm sản phẩm mới</>}
           </h3>
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
@@ -353,9 +371,13 @@ export function ProductsManager(): React.JSX.Element {
               </div>
             </div>
             <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-              <button type="submit" style={{ flex: 1, padding: '12px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}>Lưu</button>
+              <button type="submit" style={{ flex: 1, padding: '12px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <Check size={18} /> Lưu
+              </button>
               {editingId && (
-                <button type="button" onClick={() => { setEditingId(null); setForm({ name: '', description: '', price: 0, stock: 0, category: 'Khác' }); navigate('/products'); }} style={{ padding: '12px 20px', background: '#94a3b8', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}>Hủy</button>
+                <button type="button" onClick={() => { setEditingId(null); setForm({ name: '', description: '', price: 0, stock: 0, category: 'Khác' }); navigate('/products'); }} style={{ padding: '12px 20px', background: '#94a3b8', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <X size={18} /> Hủy
+                </button>
               )}
             </div>
           </form>
@@ -374,7 +396,7 @@ export function ProductsManager(): React.JSX.Element {
           color: 'white', borderRadius: '8px', zIndex: 1000,
           boxShadow: '0 4px 12px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', gap: '8px'
         }}>
-          {toast.type === 'success' ? '✅' : '⚠️'} {toast.message}
+          {toast.type === 'success' ? <Check size={18} /> : <AlertTriangle size={18} />} {toast.message}
         </div>
       )}
 
@@ -382,8 +404,10 @@ export function ProductsManager(): React.JSX.Element {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999 }} onClick={() => setHistoryModal(null)}>
           <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', width: '480px', maxHeight: '70vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700' }}>📜 Lịch sử kho (SP #{historyModal.productId})</h3>
-              <button onClick={() => setHistoryModal(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '20px' }}>✖</button>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <History size={20} /> Lịch sử kho (SP #{historyModal.productId})
+              </h3>
+              <button onClick={() => setHistoryModal(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
             </div>
             {historyModal.logs.length === 0 ? (
               <p style={{ color: '#94a3b8', textAlign: 'center', padding: '20px' }}>Chưa có lịch sử</p>
@@ -391,8 +415,8 @@ export function ProductsManager(): React.JSX.Element {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {historyModal.logs.map(log => (
                   <div key={log.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: '#f8fafc', borderRadius: '8px' }}>
-                    <span style={{ fontWeight: '600', color: log.action === 'IMPORT' ? '#16a34a' : '#dc2626' }}>
-                      {log.action === 'IMPORT' ? '📥 +' : '📤 -'}{log.quantity}
+                    <span style={{ fontWeight: '600', color: log.action === 'IMPORT' ? '#16a34a' : '#dc2626', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      {log.action === 'IMPORT' ? <ArrowDown size={16} /> : <ArrowUp size={16} />} {log.quantity}
                     </span>
                     <span style={{ fontSize: '13px', color: '#64748b' }}>{new Date(log.createdAt).toLocaleString('vi-VN')}</span>
                   </div>
@@ -404,22 +428,22 @@ export function ProductsManager(): React.JSX.Element {
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <h3 style={{ margin: 0, fontSize: '20px', fontWeight: '700', color: '#0f172a' }}>
-          📋 Danh sách tồn kho sản phẩm
+        <h3 style={{ margin: 0, fontSize: '20px', fontWeight: '700', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Package size={22} /> Danh sách tồn kho sản phẩm
         </h3>
 
         {stats && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
             <div style={{ background: '#fff', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '14px' }}>
-              <div style={{ background: '#dbeafe', padding: '12px', borderRadius: '10px', fontSize: '22px' }}>📦</div>
+              <div style={{ background: '#dbeafe', padding: '12px', borderRadius: '10px', display: 'flex' }}><Boxes size={22} color="#2563eb" /></div>
               <div><div style={{ fontSize: '13px', color: '#64748b', marginBottom: '2px' }}>Tổng sản phẩm</div><div style={{ fontSize: '22px', fontWeight: '700', color: '#0f172a' }}>{stats.totalProducts}</div></div>
             </div>
             <div style={{ background: '#fff', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '14px' }}>
-              <div style={{ background: '#dcfce7', padding: '12px', borderRadius: '10px', fontSize: '22px' }}>💰</div>
+              <div style={{ background: '#dcfce7', padding: '12px', borderRadius: '10px', display: 'flex' }}><DollarSign size={22} color="#16a34a" /></div>
               <div><div style={{ fontSize: '13px', color: '#64748b', marginBottom: '2px' }}>Tổng giá trị kho</div><div style={{ fontSize: '22px', fontWeight: '700', color: '#0f172a' }}>{stats.totalValue.toLocaleString('vi-VN')} đ</div></div>
             </div>
             <div style={{ background: '#fff', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '14px' }}>
-              <div style={{ background: '#fee2e2', padding: '12px', borderRadius: '10px', fontSize: '22px' }}>⚠️</div>
+              <div style={{ background: '#fee2e2', padding: '12px', borderRadius: '10px', display: 'flex' }}><AlertTriangle size={22} color="#dc2626" /></div>
               <div><div style={{ fontSize: '13px', color: '#64748b', marginBottom: '2px' }}>Sắp hết hàng (&lt;20)</div><div style={{ fontSize: '22px', fontWeight: '700', color: '#0f172a' }}>{stats.lowStockCount}</div></div>
             </div>
           </div>
@@ -427,11 +451,11 @@ export function ProductsManager(): React.JSX.Element {
 
         <div style={{ background: '#fff', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
           <div style={{ position: 'relative', flex: '1 1 200px' }}>
-            <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', fontSize: '14px' }}>🔍</span>
+            <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
             <input placeholder="Tìm theo tên..." value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} style={{ width: '100%', boxSizing: 'border-box', padding: '10px 10px 10px 36px', borderRadius: '8px', border: '1px solid #e2e8f0', outline: 'none' }} />
           </div>
           <div style={{ position: 'relative' }}>
-            <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', fontSize: '14px' }}>🏷️</span>
+            <ListFilter size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
             <select value={category} onChange={e => { setCategory(e.target.value); setCurrentPage(1); }} style={{ padding: '10px 10px 10px 36px', borderRadius: '8px', border: '1px solid #e2e8f0', outline: 'none', background: '#fff' }}>
               <option value="">Tất cả danh mục</option>
               <option value="Điện thoại">Điện thoại</option>
@@ -444,7 +468,7 @@ export function ProductsManager(): React.JSX.Element {
           <input type="number" placeholder="Đến..." value={maxPrice} onChange={e => { setMaxPrice(e.target.value); setCurrentPage(1); }} style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', outline: 'none', width: '110px' }} />
           <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: '#475569', cursor: 'pointer', padding: '8px 12px', borderRadius: '8px', background: lowStock ? '#fee2e2' : '#f8fafc' }}>
             <input type="checkbox" checked={lowStock} onChange={e => { setLowStock(e.target.checked); setCurrentPage(1); }} />
-            ⚠️ Sắp hết
+            <AlertTriangle size={16} color={lowStock ? '#dc2626' : '#94a3b8'} /> Sắp hết
           </label>
         </div>
 
@@ -470,7 +494,7 @@ export function ProductsManager(): React.JSX.Element {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>⏳ Đang tải...</td></tr>
+                <tr><td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}><Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} /></td></tr>
               ) : products.length === 0 ? (
                 <tr><td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>Không tìm thấy mục nào.</td></tr>
               ) : (
@@ -493,19 +517,20 @@ export function ProductsManager(): React.JSX.Element {
                       <span style={{
                         padding: '4px 8px', borderRadius: '6px', fontSize: '13px', fontWeight: '600',
                         backgroundColor: p.stock < 20 ? '#fee2e2' : '#dcfce7',
-                        color: p.stock < 20 ? '#dc2626' : '#16a34a'
+                        color: p.stock < 20 ? '#dc2626' : '#16a34a',
+                        display: 'inline-flex', alignItems: 'center', gap: '4px'
                       }}>
-                        {p.stock < 20 ? '⚠️ ' : ''}{p.stock} đơn vị
+                        {p.stock < 20 && <AlertTriangle size={14} />}{p.stock} đơn vị
                       </span>
                     </td>
                     <td style={{ padding: '14px 18px' }}>
                       {activeRowId === p.id ? (
                         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                          <button onClick={(e) => { e.stopPropagation(); handleUpdateStock(p.id, -1); }} disabled={p.stock === 0} style={{ padding: '4px 10px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: p.stock === 0 ? 'not-allowed' : 'pointer', fontWeight: '600' }}>−</button>
-                          <button onClick={(e) => { e.stopPropagation(); handleUpdateStock(p.id, 1); }} style={{ padding: '4px 10px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>+</button>
-                          <button onClick={(e) => { e.stopPropagation(); handleViewHistory(p.id); }} title="Lịch sử kho" style={{ padding: '4px 8px', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '16px' }}>📜</button>
-                          <button onClick={(e) => { e.stopPropagation(); handleEditClick(p); }} style={{ background: '#f59e0b', color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}>✏️ Sửa</button>
-                          <button onClick={(e) => { e.stopPropagation(); void handleDelete(p.id); }} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}>❌ Xóa</button>
+                          <button onClick={(e) => { e.stopPropagation(); handleUpdateStock(p.id, -1); }} disabled={p.stock === 0} style={{ padding: '4px 10px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: p.stock === 0 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center' }}><Minus size={16} /></button>
+                          <button onClick={(e) => { e.stopPropagation(); handleUpdateStock(p.id, 1); }} style={{ padding: '4px 10px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><Plus size={16} /></button>
+                          <button onClick={(e) => { e.stopPropagation(); handleViewHistory(p.id); }} title="Lịch sử kho" style={{ padding: '6px', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><History size={18} color="#64748b" /></button>
+                          <button onClick={(e) => { e.stopPropagation(); handleEditClick(p); }} style={{ background: '#f59e0b', color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}><Pencil size={14} /> Sửa</button>
+                          <button onClick={(e) => { e.stopPropagation(); void handleDelete(p.id); }} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}><Trash2 size={14} /> Xóa</button>
                         </div>
                       ) : (
                         <span style={{ fontSize: '13px', color: '#94a3b8' }}>Nhấn để thao tác</span>
@@ -522,8 +547,8 @@ export function ProductsManager(): React.JSX.Element {
               Trang {currentPage} / {totalPages}
             </span>
             <div style={{ display: 'flex', gap: '6px' }}>
-              <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} style={{ padding: '6px 12px', border: '1px solid #e2e8f0', borderRadius: '6px', background: '#fff', color: '#334155', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontSize: '13px' }}>Trước</button>
-              <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} style={{ padding: '6px 12px', border: '1px solid #e2e8f0', borderRadius: '6px', background: '#fff', color: '#334155', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', fontSize: '13px' }}>Sau</button>
+              <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} style={{ padding: '6px 12px', border: '1px solid #e2e8f0', borderRadius: '6px', background: '#fff', color: '#334155', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}><ChevronLeft size={16} /> Trước</button>
+              <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} style={{ padding: '6px 12px', border: '1px solid #e2e8f0', borderRadius: '6px', background: '#fff', color: '#334155', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>Sau <ChevronRight size={16} /></button>
             </div>
           </div>
         </div>

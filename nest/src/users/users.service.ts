@@ -1,27 +1,28 @@
 import { Injectable } from '@nestjs/common';
-
-export interface User {
-  id: number;
-  email: string;
-  password: string; 
-}
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from './entities/user.entity.js'; // Nhớ import đúng đường dẫn
 
 @Injectable()
 export class UsersService {
-  private users: User[] = [];
-  private nextId = 1;
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+  ) {}
 
-  async findByEmail(email: string): Promise<User | undefined> {
-    return this.users.find((u) => u.email === email);
+  async findByEmail(email: string): Promise<User | null> {
+    return this.userRepository.findOne({ where: { email } });
   }
 
-  async findById(id: number): Promise<User | undefined> {
-    return this.users.find((u) => u.id === id);
+  async findById(id: number): Promise<User | null> {
+    return this.userRepository.findOne({ where: { id } });
   }
 
   async create(email: string, hashedPassword: string): Promise<User> {
-    const user = { id: this.nextId++, email, password: hashedPassword };
-    this.users.push(user);
-    return user;
+    const user = this.userRepository.create({ 
+      email, 
+      password: hashedPassword 
+    });
+    return this.userRepository.save(user);
   }
 }
