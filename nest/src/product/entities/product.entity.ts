@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import type { Relation } from 'typeorm';
 import { InventoryLog } from './inventory-log.entity.js';
 import { ProductVariant } from './product-variant.entity.js';
 @Entity('products')
@@ -22,7 +23,7 @@ export class Product {
   category: string;
 
   @OneToMany(() => InventoryLog, (log) => log.product)
-  logs: InventoryLog[];
+  logs: Relation<InventoryLog[]>; // 👈 Đổi từ InventoryLog[] thành Relation<InventoryLog[]>
 
   @OneToMany(() => ProductVariant, (variant) => variant.product)
   variants: ProductVariant[];

@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
+import type { Relation } from 'typeorm';
 import { Product } from './product.entity.js';
 
 @Entity('inventory_logs')
@@ -17,5 +18,5 @@ export class InventoryLog {
 
   @ManyToOne(() => Product, (product) => product.logs, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'productId' })
-  product: Product;
+  product: Relation<Product>; // 👈 Đổi từ Product thành Relation<Product>
 }
