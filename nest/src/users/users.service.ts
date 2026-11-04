@@ -18,8 +18,9 @@ export class UsersService {
     return this.userRepository.findOne({ where: { id } });
   }
 
-  async create(email: string, hashedPassword: string): Promise<User> {
+  async create(name:string, email: string, hashedPassword: string): Promise<User> {
     const user = this.userRepository.create({ 
+      name,
       email, 
       password: hashedPassword 
     });

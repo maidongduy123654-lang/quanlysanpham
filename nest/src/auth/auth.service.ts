@@ -21,7 +21,7 @@ export class AuthService {
     if (exists) throw new ConflictException('Email đã tồn tại');
 
     const hashed = await bcrypt.hash(dto.password, 10);
-    const user = await this.usersService.create(dto.email, hashed);
+    const user = await this.usersService.create(dto.name, dto.email, hashed);
     return { id: user.id, email: user.email };
   }
 
