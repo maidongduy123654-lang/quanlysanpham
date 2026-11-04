@@ -26,7 +26,7 @@ export class Product {
   logs: Relation<InventoryLog[]>; // 👈 Đổi từ InventoryLog[] thành Relation<InventoryLog[]>
 
   @OneToMany(() => ProductVariant, (variant) => variant.product)
-  variants: ProductVariant[];
+variants: Relation<ProductVariant[]>;
 
   @CreateDateColumn()
   createdAt: Date;

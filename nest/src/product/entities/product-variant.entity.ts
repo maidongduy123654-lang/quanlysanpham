@@ -1,5 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { Product } from './product.entity.js';
+import type { Relation } from 'typeorm'; 
+
 
 @Entity('product_variants')
 export class ProductVariant {
@@ -17,5 +19,5 @@ export class ProductVariant {
 
   @ManyToOne(() => Product, (product) => product.variants, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'productId' })
-  product: Product;
+  product: Relation<Product>; 
 }
