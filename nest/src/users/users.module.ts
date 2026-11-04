@@ -4,8 +4,8 @@ import { UsersService } from './users.service.js';
 import { User } from './entities/user.entity.js';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User])], // 👈 Bắt buộc phải có dòng này
+  imports: [TypeOrmModule.forFeature([User])],
   providers: [UsersService],
-  exports: [UsersService], // 👈 Để AuthService có thể dùng
+  exports: [UsersService], 
 })
 export class UsersModule {}

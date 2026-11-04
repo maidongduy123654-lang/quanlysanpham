@@ -6,6 +6,21 @@ import * as path from 'path';
 import { Product } from './product/entities/product.entity.js'; 
 import { AuthModule } from './auth/auth.module.js';
 import { ProductModule } from './product/product.module.js';
+import { InventoryLog } from './product/entities/inventory-log.entity.js';
+import { ProductVariant } from './product/entities/product-variant.entity.js';
+import { User } from './users/entities/user.entity.js';
+
+// ...
+
+TypeOrmModule.forRoot({
+  // ... các cấu hình khác
+  ssl: {                                             
+    ca: fs.readFileSync(path.join(process.cwd(), 'ca.pem')),
+    rejectUnauthorized: true,
+  },
+  entities: [Product, InventoryLog, ProductVariant], // 👈 Thêm 2 cái này vào
+  synchronize: false,
+})
 
 @Module({
   imports: [
@@ -26,7 +41,7 @@ import { ProductModule } from './product/product.module.js';
           ca: fs.readFileSync(path.join(process.cwd(), 'ca.pem')),
           rejectUnauthorized: true,
         },
-        entities: [Product],
+  entities: [Product, InventoryLog, ProductVariant, User], 
         synchronize: false, 
       }),
     }),
