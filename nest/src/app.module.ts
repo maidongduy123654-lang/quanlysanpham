@@ -10,18 +10,6 @@ import { InventoryLog } from './product/entities/inventory-log.entity.js';
 import { ProductVariant } from './product/entities/product-variant.entity.js';
 import { User } from './users/entities/user.entity.js';
 
-// ...
-
-TypeOrmModule.forRoot({
-  // ... các cấu hình khác
-  ssl: {                                             
-    ca: fs.readFileSync(path.join(process.cwd(), 'ca.pem')),
-    rejectUnauthorized: true,
-  },
-  entities: [Product, InventoryLog, ProductVariant], // 👈 Thêm 2 cái này vào
-  synchronize: false,
-})
-
 @Module({
   imports: [
     ConfigModule.forRoot({
