@@ -371,91 +371,50 @@ export function ProductsManager(): React.JSX.Element {
   if (isAddRoute) {
     return (
       <Layout>
-       <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', overflowX: 'auto' }}>
-  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-    <thead>
-      <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-        <th style={{ padding: '14px 18px', fontSize: '13px', fontWeight: '600', color: '#64748b', cursor: 'pointer' }} onClick={() => handleSort('id')}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>ID <SortIcon column="id" /></div>
-        </th>
-        <th style={{ padding: '14px 18px', fontSize: '13px', fontWeight: '600', color: '#64748b', cursor: 'pointer' }} onClick={() => handleSort('name')}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>Tên <SortIcon column="name" /></div>
-        </th>
-        <th style={{ padding: '14px 18px', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>Mô tả</th>
-        <th style={{ padding: '14px 18px', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>Danh mục</th>
-        <th style={{ padding: '14px 18px', fontSize: '13px', fontWeight: '600', color: '#64748b', cursor: 'pointer' }} onClick={() => handleSort('price')}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>Giá <SortIcon column="price" /></div>
-        </th>
-        <th style={{ padding: '14px 18px', fontSize: '13px', fontWeight: '600', color: '#64748b', cursor: 'pointer' }} onClick={() => handleSort('stock')}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>Tồn kho <SortIcon column="stock" /></div>
-        </th>
-        <th style={{ padding: '14px 18px', fontSize: '13px', fontWeight: '600', color: '#64748b', textAlign: 'right', whiteSpace: 'nowrap' }}>Thao tác</th>
-      </tr>
-    </thead>
-    <tbody>
-      {loading ? (
-        <tr><td colSpan={7} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}><Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} /></td></tr>
-      ) : products.length === 0 ? (
-        <tr><td colSpan={7} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>Không tìm thấy mục nào.</td></tr>
-      ) : (
-        products.map((p) => (
-          <tr
-            key={p.id}
-            onClick={(e) => { e.stopPropagation(); setActiveRowId(activeRowId === p.id ? null : p.id); }}
-            style={{
-              borderBottom: '1px solid #f1f5f9',
-              cursor: 'pointer',
-              background: activeRowId === p.id ? '#eff6ff' : '#fff',
-              transition: 'background 0.15s',
-            }}
-          >
-            <td style={{ padding: '14px 18px', fontSize: '14px', color: '#64748b' }}>#{p.id}</td>
-            <td style={{ padding: '14px 18px', fontSize: '14px', fontWeight: '600', color: '#0f172a' }}>{p.name}</td>
-            <td style={{ padding: '14px 18px', fontSize: '14px', color: '#475569', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {p.description || '—'}
-            </td>
-            <td style={{ padding: '14px 18px', fontSize: '14px', color: '#475569' }}>{p.category || '—'}</td>
-            <td style={{ padding: '14px 18px', fontSize: '14px', color: '#0f172a', fontWeight: '500' }}>{Number(p.price).toLocaleString()} VND</td>
-            <td style={{ padding: '14px 18px' }}>
-              <span style={{
-                padding: '4px 8px', borderRadius: '6px', fontSize: '13px', fontWeight: '600',
-                backgroundColor: p.stock < 20 ? '#fee2e2' : '#dcfce7',
-                color: p.stock < 20 ? '#dc2626' : '#16a34a',
-                display: 'inline-flex', alignItems: 'center', gap: '4px'
-              }}>
-                {p.stock < 20 && <AlertTriangle size={14} />}{p.stock} đơn vị
-              </span>
-            </td>
-            <td style={{ padding: '14px 18px', textAlign: 'right', whiteSpace: 'nowrap' }}>
-              {activeRowId === p.id ? (
-                <div style={{ display: 'flex', gap: '6px', alignItems: 'center', justifyContent: 'flex-end' }}>
-                  <button onClick={(e) => { e.stopPropagation(); handleUpdateStock(p.id, -1); }} disabled={p.stock === 0} style={{ padding: '4px 10px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: p.stock === 0 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center' }}><Minus size={16} /></button>
-                  <button onClick={(e) => { e.stopPropagation(); handleUpdateStock(p.id, 1); }} style={{ padding: '4px 10px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><Plus size={16} /></button>
-                  <button onClick={(e) => { e.stopPropagation(); handleViewHistory(p.id); }} title="Lịch sử kho" style={{ padding: '6px', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><History size={18} color="#64748b" /></button>
-                  <button onClick={(e) => { e.stopPropagation(); handleViewVariants(p.id); }} title="Xem biến thể" style={{ padding: '6px', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><Tag size={18} color="#64748b" /></button>
-                  <button onClick={(e) => { e.stopPropagation(); handleEditClick(p); }} style={{ background: '#f59e0b', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}><Pencil size={14} /> Sửa</button>
-                  <button onClick={(e) => { e.stopPropagation(); void handleDelete(p.id); }} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}><Trash2 size={14} /> Xóa</button>
-                </div>
-              ) : (
-                <span style={{ fontSize: '13px', color: '#94a3b8' }}>Nhấn để thao tác</span>
+        <div style={{ background: '#fff', padding: '32px', borderRadius: '12px', border: '1px solid #e2e8f0', maxWidth: '560px' }}>
+          <h3 style={{ margin: '0 0 24px 0', fontSize: '20px', fontWeight: '700', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {editingId ? <><Pencil size={20} /> Cập nhật sản phẩm</> : <><Plus size={20} /> Thêm sản phẩm mới</>}
+          </h3>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#334155', marginBottom: '6px' }}>Tên</label>
+              <input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }} required />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#334155', marginBottom: '6px' }}>Danh mục</label>
+              <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <option value="Khác">Khác</option>
+                <option value="Điện thoại">Điện thoại</option>
+                <option value="Laptop">Laptop</option>
+                <option value="Phụ kiện">Phụ kiện</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#334155', marginBottom: '6px' }}>Mô tả</label>
+              <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', minHeight: '90px' }} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#334155', marginBottom: '6px' }}>Giá (VND)</label>
+                <input type="number" value={form.price || ''} onChange={e => setForm({ ...form, price: Number(e.target.value) })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }} required />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#334155', marginBottom: '6px' }}>Tồn kho</label>
+                <input type="number" value={form.stock || ''} onChange={e => setForm({ ...form, stock: Number(e.target.value) })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }} required />
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+              <button type="submit" style={{ flex: 1, padding: '12px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <Check size={18} /> Lưu
+              </button>
+              {editingId && (
+                <button type="button" onClick={() => { setEditingId(null); setForm({ name: '', description: '', price: 0, stock: 0, category: 'Khác' }); navigate('/products'); }} style={{ padding: '12px 20px', background: '#94a3b8', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <X size={18} /> Hủy
+                </button>
               )}
-            </td>
-          </tr>
-        ))
-      )}
-    </tbody>
-  </table>
-
-  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 18px', borderTop: '1px solid #e2e8f0', background: '#f8fafc' }}>
-    <span style={{ fontSize: '13px', color: '#64748b' }}>
-      Trang {currentPage} / {totalPages}
-    </span>
-    <div style={{ display: 'flex', gap: '6px' }}>
-      <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} style={{ padding: '6px 12px', border: '1px solid #e2e8f0', borderRadius: '6px', background: '#fff', color: '#334155', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}><ChevronLeft size={16} /> Trước</button>
-      <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} style={{ padding: '6px 12px', border: '1px solid #e2e8f0', borderRadius: '6px', background: '#fff', color: '#334155', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>Sau <ChevronRight size={16} /></button>
-    </div>
-  </div>
-</div>
+            </div>
+          </form>
+        </div>
       </Layout>
     );
   }
