@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: quanlysanpham-1 # Thay bằng tên service trên Render của bạn
+    runtime: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist # Nếu bạn dùng Vite thì để dist, nếu CRA thì đổi thành build
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
