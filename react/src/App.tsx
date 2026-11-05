@@ -460,7 +460,7 @@ export function ProductsManager(): React.JSX.Element {
     );
   }
 
-  // ===== LIST =====
+   // ===== LIST =====
   return (
     <Layout>
       {toast && (
