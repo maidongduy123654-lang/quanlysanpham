@@ -547,8 +547,11 @@ export function ProductsManager(): React.JSX.Element {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>ID <SortIcon column="id" /></div>
                 </th>
                 <th style={{ padding: '14px 18px', fontSize: '13px', fontWeight: '600', color: '#64748b', cursor: 'pointer' }} onClick={() => handleSort('name')}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>Tên <SortIcon column="name" /></div>
+                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>Tên <SortIcon column="name" /></div>
                 </th>
+                
+                <th style={{ padding: '14px 18px', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>Mô tả</th>
+
                 <th style={{ padding: '14px 18px', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>Danh mục</th>
                 <th style={{ padding: '14px 18px', fontSize: '13px', fontWeight: '600', color: '#64748b', cursor: 'pointer' }} onClick={() => handleSort('price')}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>Giá <SortIcon column="price" /></div>
@@ -563,7 +566,7 @@ export function ProductsManager(): React.JSX.Element {
               {loading ? (
                 <tr><td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}><Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} /></td></tr>
               ) : products.length === 0 ? (
-                <tr><td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>Không tìm thấy mục nào.</td></tr>
+              <tr><td colSpan={7} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>Không tìm thấy mục nào.</td></tr>
               ) : (
                 products.map((p) => (
                   <tr
@@ -578,6 +581,9 @@ export function ProductsManager(): React.JSX.Element {
                   >
                     <td style={{ padding: '14px 18px', fontSize: '14px', color: '#64748b' }}>#{p.id}</td>
                     <td style={{ padding: '14px 18px', fontSize: '14px', fontWeight: '600', color: '#0f172a' }}>{p.name}</td>
+                    <td style={{ padding: '14px 18px', fontSize: '14px', color: '#475569', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+  {p.description || '—'}
+</td>
                     <td style={{ padding: '14px 18px', fontSize: '14px', color: '#475569' }}>{p.category || '—'}</td>
                     <td style={{ padding: '14px 18px', fontSize: '14px', color: '#0f172a', fontWeight: '500' }}>{Number(p.price).toLocaleString()} VND</td>
                     <td style={{ padding: '14px 18px' }}>
