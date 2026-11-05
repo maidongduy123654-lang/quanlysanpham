@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Package, Plus, Pencil, Trash2, LogOut,
   Search, AlertTriangle, DollarSign, Boxes, X, Check, Loader2,
   ListFilter, History, ChevronLeft, ChevronRight,
-  ArrowUpDown, ArrowUp, ArrowDown, Minus
+  ArrowUpDown, ArrowUp, ArrowDown, Minus, Tag
 } from 'lucide-react';
 
 interface Product {
@@ -16,6 +16,8 @@ interface Product {
   category: string;
   createdAt: string;
   updatedAt: string;
+    variants?: any[];
+
 }
 
 interface ProductForm {
@@ -218,6 +220,8 @@ export function ProductsManager(): React.JSX.Element {
   const itemsPerPage = 5;
 
   const [historyModal, setHistoryModal] = useState<{ productId: number; logs: InventoryLog[] } | null>(null);
+  const [variantModal, setVariantModal] = useState<{ productId: number; variants: any[] } | null>(null);
+  const [variantForm, setVariantForm] = useState({ name: '', stock: 0, priceAdjustment: 0 });
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
@@ -333,6 +337,35 @@ export function ProductsManager(): React.JSX.Element {
     if (sortBy !== column) return <ArrowUpDown size={14} style={{ opacity: 0.3 }} />;
     return sortOrder === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />;
   };
+    const handleViewVariants = async (productId: number) => {
+    try {
+      const res = await fetch(`${API_URL}/products/${productId}`, { headers: getAuthHeaders() });
+      if (res.ok) {
+        const data = await res.json();
+        setVariantModal({ productId, variants: data.variants || [] });
+      }
+    } catch { showToast('Lỗi tải biến thể', 'error'); }
+  };
+
+  const handleAddVariant = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!variantModal) return;
+    try {
+      const res = await fetch(`${API_URL}/products/${variantModal.productId}/variants`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(variantForm)
+      });
+      if (res.ok) {
+        showToast('Thêm biến thể thành công!');
+        setVariantForm({ name: '', stock: 0, priceAdjustment: 0 });
+        // Tải lại danh sách biến thể
+        handleViewVariants(variantModal.productId);
+      } else {
+        showToast('Lỗi thêm biến thể', 'error');
+      }
+    } catch { showToast('Lỗi mạng', 'error'); }
+  };
 
   // ===== FORM =====
   if (isAddRoute) {
@@ -419,6 +452,40 @@ export function ProductsManager(): React.JSX.Element {
                       {log.action === 'IMPORT' ? <ArrowDown size={16} /> : <ArrowUp size={16} />} {log.quantity}
                     </span>
                     <span style={{ fontSize: '13px', color: '#64748b' }}>{new Date(log.createdAt).toLocaleString('vi-VN')}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+            {variantModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999 }} onClick={() => setVariantModal(null)}>
+          <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', width: '500px', maxHeight: '80vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Tag size={20} /> Biến thể (SP #{variantModal.productId})
+              </h3>
+              <button onClick={() => setVariantModal(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
+            </div>
+
+            {/* Form thêm biến thể */}
+            <form onSubmit={handleAddVariant} style={{ display: 'flex', gap: '8px', marginBottom: '16px', padding: '12px', background: '#f8fafc', borderRadius: '8px' }}>
+              <input placeholder="Tên (VD: Size M)" value={variantForm.name} onChange={e => setVariantForm({ ...variantForm, name: e.target.value })} style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }} required />
+              <input type="number" placeholder="SL" value={variantForm.stock || ''} onChange={e => setVariantForm({ ...variantForm, stock: Number(e.target.value) })} style={{ width: '60px', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }} />
+              <input type="number" placeholder="Giá cộng thêm" value={variantForm.priceAdjustment || ''} onChange={e => setVariantForm({ ...variantForm, priceAdjustment: Number(e.target.value) })} style={{ width: '100px', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }} />
+              <button type="submit" style={{ padding: '8px 16px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Thêm</button>
+            </form>
+
+            {/* Danh sách biến thể */}
+            {variantModal.variants.length === 0 ? (
+              <p style={{ color: '#94a3b8', textAlign: 'center', padding: '20px' }}>Chưa có biến thể</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {variantModal.variants.map((v: any, idx: number) => (
+                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: '#f8fafc', borderRadius: '8px' }}>
+                    <span style={{ fontWeight: '600' }}>{v.name}</span>
+                    <span style={{ color: '#64748b' }}>SL: {v.stock} | +{Number(v.priceAdjustment).toLocaleString()} đ</span>
                   </div>
                 ))}
               </div>
@@ -531,6 +598,7 @@ export function ProductsManager(): React.JSX.Element {
                           <button onClick={(e) => { e.stopPropagation(); handleViewHistory(p.id); }} title="Lịch sử kho" style={{ padding: '6px', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><History size={18} color="#64748b" /></button>
                           <button onClick={(e) => { e.stopPropagation(); handleEditClick(p); }} style={{ background: '#f59e0b', color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}><Pencil size={14} /> Sửa</button>
                           <button onClick={(e) => { e.stopPropagation(); void handleDelete(p.id); }} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}><Trash2 size={14} /> Xóa</button>
+                          <button onClick={(e) => { e.stopPropagation(); handleViewVariants(p.id); }} title="Xem biến thể" style={{ padding: '6px', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><Tag size={18} color="#64748b" /></button>
                         </div>
                       ) : (
                         <span style={{ fontSize: '13px', color: '#94a3b8' }}>Nhấn để thao tác</span>
