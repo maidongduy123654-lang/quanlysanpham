@@ -500,7 +500,8 @@ export function ProductsManager(): React.JSX.Element {
           </div>
         </div>
       )}
-            {variantModal && (
+
+      {variantModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999 }} onClick={() => setVariantModal(null)}>
           <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', width: '500px', maxHeight: '80vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -510,7 +511,6 @@ export function ProductsManager(): React.JSX.Element {
               <button onClick={() => setVariantModal(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
             </div>
 
-            {/* Form thêm biến thể */}
             <form onSubmit={handleAddVariant} style={{ display: 'flex', gap: '8px', marginBottom: '16px', padding: '12px', background: '#f8fafc', borderRadius: '8px' }}>
               <input placeholder="Tên (VD: Size M)" value={variantForm.name} onChange={e => setVariantForm({ ...variantForm, name: e.target.value })} style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }} required />
               <input type="number" placeholder="SL" value={variantForm.stock || ''} onChange={e => setVariantForm({ ...variantForm, stock: Number(e.target.value) })} style={{ width: '60px', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }} />
@@ -518,7 +518,6 @@ export function ProductsManager(): React.JSX.Element {
               <button type="submit" style={{ padding: '8px 16px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Thêm</button>
             </form>
 
-            {/* Danh sách biến thể */}
             {variantModal.variants.length === 0 ? (
               <p style={{ color: '#94a3b8', textAlign: 'center', padding: '20px' }}>Chưa có biến thể</p>
             ) : (
@@ -580,7 +579,8 @@ export function ProductsManager(): React.JSX.Element {
           </label>
         </div>
 
-        <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+        {/* BẢNG SẢN PHẨM ĐÃ SỬA */}
+        <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
               <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
@@ -588,11 +588,9 @@ export function ProductsManager(): React.JSX.Element {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>ID <SortIcon column="id" /></div>
                 </th>
                 <th style={{ padding: '14px 18px', fontSize: '13px', fontWeight: '600', color: '#64748b', cursor: 'pointer' }} onClick={() => handleSort('name')}>
-                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>Tên <SortIcon column="name" /></div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>Tên <SortIcon column="name" /></div>
                 </th>
-                
                 <th style={{ padding: '14px 18px', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>Mô tả</th>
-
                 <th style={{ padding: '14px 18px', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>Danh mục</th>
                 <th style={{ padding: '14px 18px', fontSize: '13px', fontWeight: '600', color: '#64748b', cursor: 'pointer' }} onClick={() => handleSort('price')}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>Giá <SortIcon column="price" /></div>
@@ -600,19 +598,19 @@ export function ProductsManager(): React.JSX.Element {
                 <th style={{ padding: '14px 18px', fontSize: '13px', fontWeight: '600', color: '#64748b', cursor: 'pointer' }} onClick={() => handleSort('stock')}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>Tồn kho <SortIcon column="stock" /></div>
                 </th>
-                <th style={{ padding: '14px 18px', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>Thao tác</th>
+                <th style={{ padding: '14px 18px', fontSize: '13px', fontWeight: '600', color: '#64748b', textAlign: 'right', whiteSpace: 'nowrap' }}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}><Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} /></td></tr>
+                <tr><td colSpan={7} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}><Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} /></td></tr>
               ) : products.length === 0 ? (
-              <tr><td colSpan={7} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>Không tìm thấy mục nào.</td></tr>
+                <tr><td colSpan={7} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>Không tìm thấy mục nào.</td></tr>
               ) : (
                 products.map((p) => (
                   <tr
                     key={p.id}
-                    onClick={() => setActiveRowId(activeRowId === p.id ? null : p.id)}
+                    onClick={(e) => { e.stopPropagation(); setActiveRowId(activeRowId === p.id ? null : p.id); }}
                     style={{
                       borderBottom: '1px solid #f1f5f9',
                       cursor: 'pointer',
@@ -623,8 +621,8 @@ export function ProductsManager(): React.JSX.Element {
                     <td style={{ padding: '14px 18px', fontSize: '14px', color: '#64748b' }}>#{p.id}</td>
                     <td style={{ padding: '14px 18px', fontSize: '14px', fontWeight: '600', color: '#0f172a' }}>{p.name}</td>
                     <td style={{ padding: '14px 18px', fontSize: '14px', color: '#475569', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-  {p.description || '—'}
-</td>
+                      {p.description || '—'}
+                    </td>
                     <td style={{ padding: '14px 18px', fontSize: '14px', color: '#475569' }}>{p.category || '—'}</td>
                     <td style={{ padding: '14px 18px', fontSize: '14px', color: '#0f172a', fontWeight: '500' }}>{Number(p.price).toLocaleString()} VND</td>
                     <td style={{ padding: '14px 18px' }}>
@@ -637,15 +635,15 @@ export function ProductsManager(): React.JSX.Element {
                         {p.stock < 20 && <AlertTriangle size={14} />}{p.stock} đơn vị
                       </span>
                     </td>
-                    <td style={{ padding: '14px 18px' }}>
+                    <td style={{ padding: '14px 18px', textAlign: 'right', whiteSpace: 'nowrap' }}>
                       {activeRowId === p.id ? (
-                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', justifyContent: 'flex-end' }}>
                           <button onClick={(e) => { e.stopPropagation(); handleUpdateStock(p.id, -1); }} disabled={p.stock === 0} style={{ padding: '4px 10px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: p.stock === 0 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center' }}><Minus size={16} /></button>
                           <button onClick={(e) => { e.stopPropagation(); handleUpdateStock(p.id, 1); }} style={{ padding: '4px 10px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><Plus size={16} /></button>
                           <button onClick={(e) => { e.stopPropagation(); handleViewHistory(p.id); }} title="Lịch sử kho" style={{ padding: '6px', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><History size={18} color="#64748b" /></button>
-                          <button onClick={(e) => { e.stopPropagation(); handleEditClick(p); }} style={{ background: '#f59e0b', color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}><Pencil size={14} /> Sửa</button>
-                          <button onClick={(e) => { e.stopPropagation(); void handleDelete(p.id); }} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}><Trash2 size={14} /> Xóa</button>
                           <button onClick={(e) => { e.stopPropagation(); handleViewVariants(p.id); }} title="Xem biến thể" style={{ padding: '6px', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><Tag size={18} color="#64748b" /></button>
+                          <button onClick={(e) => { e.stopPropagation(); handleEditClick(p); }} style={{ background: '#f59e0b', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}><Pencil size={14} /> Sửa</button>
+                          <button onClick={(e) => { e.stopPropagation(); void handleDelete(p.id); }} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}><Trash2 size={14} /> Xóa</button>
                         </div>
                       ) : (
                         <span style={{ fontSize: '13px', color: '#94a3b8' }}>Nhấn để thao tác</span>
