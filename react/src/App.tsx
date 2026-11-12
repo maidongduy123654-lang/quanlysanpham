@@ -125,8 +125,8 @@ function Register(): React.JSX.Element {
   };
 
   return (
-<div style={{ display: 'flex', minHeight: '100vh', background: '#f1f5f9', fontFamily: 'Inter, system-ui, sans-serif' }}>      
-  <div style={{ background: '#fff', padding: '32px', borderRadius: '12px', boxShadow: '0 4px 20px rgba(15,23,42,0.08)', width: '340px' }}>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh',  width: '100%',background: '#f8fafc', fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <div style={{ background: '#fff', padding: '32px', borderRadius: '12px', boxShadow: '0 4px 20px rgba(15,23,42,0.08)', width: '340px' }}>
         <h2 style={{ margin: '0 0 24px 0', color: '#0f172a', fontWeight: '700' }}>Đăng ký</h2>
         <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <input type="text" placeholder="Họ và tên" value={name} onChange={e => setName(e.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '14px' }} required />
@@ -434,7 +434,8 @@ export function ProductsManager(): React.JSX.Element {
       )}
 
       {historyModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999, animation: 'fadeIn 0.2s ease-in-out' }} onClick={() => setHistoryModal(null)}>          <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', width: '480px', maxHeight: '70vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999 }} onClick={() => setHistoryModal(null)}>
+          <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', width: '480px', maxHeight: '70vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <History size={20} /> Lịch sử kho (SP #{historyModal.productId})
@@ -460,7 +461,7 @@ export function ProductsManager(): React.JSX.Element {
       )}
 
       {variantModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999, animation: 'fadeIn 0.2s ease-in-out' }} onClick={() => setVariantModal(null)}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999 }} onClick={() => setVariantModal(null)}>
           <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', width: '500px', maxHeight: '80vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -499,15 +500,15 @@ export function ProductsManager(): React.JSX.Element {
 
         {stats && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-            <div style={{ background: '#fff', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '14px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+            <div style={{ background: '#fff', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '14px' }}>
               <div style={{ background: '#dbeafe', padding: '12px', borderRadius: '10px', display: 'flex' }}><Boxes size={22} color="#2563eb" /></div>
               <div><div style={{ fontSize: '13px', color: '#64748b', marginBottom: '2px' }}>Tổng sản phẩm</div><div style={{ fontSize: '22px', fontWeight: '700', color: '#0f172a' }}>{stats.totalProducts}</div></div>
             </div>
-            <div style={{ background: '#fff', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '14px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+            <div style={{ background: '#fff', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '14px' }}>
               <div style={{ background: '#dcfce7', padding: '12px', borderRadius: '10px', display: 'flex' }}><DollarSign size={22} color="#16a34a" /></div>
               <div><div style={{ fontSize: '13px', color: '#64748b', marginBottom: '2px' }}>Tổng giá trị kho</div><div style={{ fontSize: '22px', fontWeight: '700', color: '#0f172a' }}>{stats.totalValue.toLocaleString('vi-VN')} đ</div></div>
             </div>
-            <div style={{ background: '#fff', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '14px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+            <div style={{ background: '#fff', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '14px' }}>
               <div style={{ background: '#fee2e2', padding: '12px', borderRadius: '10px', display: 'flex' }}><AlertTriangle size={22} color="#dc2626" /></div>
               <div><div style={{ fontSize: '13px', color: '#64748b', marginBottom: '2px' }}>Sắp hết hàng (&lt;20)</div><div style={{ fontSize: '22px', fontWeight: '700', color: '#0f172a' }}>{stats.lowStockCount}</div></div>
             </div>
@@ -596,8 +597,8 @@ export function ProductsManager(): React.JSX.Element {
                     <td style={{ padding: '14px 18px', textAlign: 'right', whiteSpace: 'nowrap' }}>
                       {activeRowId === p.id ? (
                         <div style={{ display: 'flex', gap: '6px', alignItems: 'center', justifyContent: 'flex-end' }}>
-                          <button title="Giảm kho" onClick={(e) => { e.stopPropagation(); handleUpdateStock(p.id, -1); }} disabled={p.stock === 0} style={{ padding: '4px 10px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: p.stock === 0 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center' }}><Minus size={16} /></button>
-                          <button title="Tăng kho" onClick={(e) => { e.stopPropagation(); handleUpdateStock(p.id, 1); }} style={{ padding: '4px 10px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><Plus size={16} /></button>
+                          <button onClick={(e) => { e.stopPropagation(); handleUpdateStock(p.id, -1); }} disabled={p.stock === 0} style={{ padding: '4px 10px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: p.stock === 0 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center' }}><Minus size={16} /></button>
+                          <button onClick={(e) => { e.stopPropagation(); handleUpdateStock(p.id, 1); }} style={{ padding: '4px 10px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><Plus size={16} /></button>
                           <button onClick={(e) => { e.stopPropagation(); handleViewHistory(p.id); }} title="Lịch sử kho" style={{ padding: '6px', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><History size={18} color="#64748b" /></button>
                           <button onClick={(e) => { e.stopPropagation(); handleViewVariants(p.id); }} title="Xem biến thể" style={{ padding: '6px', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><Tag size={18} color="#64748b" /></button>
                           <button onClick={(e) => { e.stopPropagation(); handleEditClick(p); }} style={{ background: '#f59e0b', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}><Pencil size={14} /> Sửa</button>
